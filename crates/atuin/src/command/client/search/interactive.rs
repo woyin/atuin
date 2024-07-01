@@ -31,7 +31,6 @@ use super::{
     cursor::Cursor,
     engines::{SearchEngine, SearchState},
     history_list::{HistoryList, ListState, PREFIX_LENGTH},
-    sort,
 };
 
 use crate::{command::client::search::engines, VERSION};
@@ -96,7 +95,10 @@ impl State {
         self.results_len = results.len();
 
         if smart_sort {
-            Ok(sort::sort(self.search.input.as_str(), results))
+            Ok(atuin_history::sort::sort(
+                self.search.input.as_str(),
+                results,
+            ))
         } else {
             Ok(results)
         }
@@ -204,7 +206,7 @@ impl State {
         let esc_allow_exit = !(self.tab_index == 0 && self.keymap_mode == KeymapMode::VimInsert);
 
         // support ctrl-a prefix, like screen or tmux
-        if ctrl && input.code == KeyCode::Char('a') {
+        if ctrl && input.code == KeyCode::Char(settings.keys.prefix.chars().next().unwrap_or('a')) {
             self.prefix = true;
             return InputAction::Continue;
         }

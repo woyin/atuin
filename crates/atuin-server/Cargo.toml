@@ -11,8 +11,8 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-atuin-common = { path = "../atuin-common", version = "18.3.0-prerelease.1" }
-atuin-server-database = { path = "../atuin-server-database", version = "18.3.0-prerelease.1" }
+atuin-common = { path = "../atuin-common", version = "18.4.0-beta.1" }
+atuin-server-database = { path = "../atuin-server-database", version = "18.4.0-beta.1" }
 
 tracing = "0.1"
 time = { workspace = true }
@@ -37,3 +37,4 @@ argon2 = "0.5"
 semver = { workspace = true }
 metrics-exporter-prometheus = "0.12.1"
 metrics = "0.21.1"
+postmark = {version= "0.10.1", features=["reqwest"]}

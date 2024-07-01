@@ -4,6 +4,7 @@ import { useState, ReactElement } from "react";
 import { useStore } from "@/state/store";
 
 import Button, { ButtonStyle } from "@/components/Button";
+import { Toaster } from "@/components/ui/toaster";
 
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
@@ -104,7 +105,7 @@ function App() {
                 </ul>
               </li>
               <li className="mt-auto">
-                {user && !user.isLoggedIn() && (
+                {user && user.username === "" && !user.username && (
                   <Dialog>
                     <DialogTrigger className="w-full">
                       <Button
@@ -124,6 +125,7 @@ function App() {
       </div>
 
       {renderMain(section)}
+      <Toaster />
     </div>
   );
 }

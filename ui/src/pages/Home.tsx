@@ -1,7 +1,13 @@
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { formatRelative } from "date-fns";
+import { Tooltip as ReactTooltip } from "react-tooltip";
 
 import { useStore } from "@/state/store";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { invoke } from "@tauri-apps/api/core";
+
+import ActivityCalendar from "react-activity-calendar";
 
 function Stats({ stats }: any) {
   return (
@@ -42,15 +48,68 @@ function Header({ name }: any) {
   );
 }
 
+const explicitTheme: ThemeInput = {
+  light: ["#f0f0f0", "#c4edde", "#7ac7c4", "#f73859", "#384259"],
+  dark: ["#383838", "#4D455D", "#7DB9B6", "#F5E9CF", "#E96479"],
+};
+
 export default function Home() {
   const homeInfo = useStore((state) => state.homeInfo);
   const user = useStore((state) => state.user);
+  const calendar = useStore((state) => state.calendar);
+  const weekStart = useStore((state) => state.weekStart);
+
   const refreshHomeInfo = useStore((state) => state.refreshHomeInfo);
   const refreshUser = useStore((state) => state.refreshUser);
+  const refreshCalendar = useStore((state) => state.refreshCalendar);
+
+  const { toast } = useToast();
 
   useEffect(() => {
     refreshHomeInfo();
     refreshUser();
+    refreshCalendar();
+
+    let setup = async () => {
+      let installed = await invoke("is_cli_installed");
+      console.log("CLI installation status:", installed);
+
+      if (!installed) {
+        toast({
+          title: "Atuin CLI",
+          description: "CLI not detected - install?",
+          action: (
+            <ToastAction
+              altText="Install"
+              onClick={() => {
+                let install = async () => {
+                  toast({
+                    title: "Atuin CLI",
+                    description: "Install in progress...",
+                  });
+
+                  console.log("Installing CLI...");
+                  await invoke("install_cli");
+
+                  console.log("Setting up plugin...");
+                  await invoke("setup_cli");
+
+                  toast({
+                    title: "Atuin CLI",
+                    description: "Installation complete",
+                  });
+                };
+                install();
+              }}
+            >
+              Install
+            </ToastAction>
+          ),
+        });
+      }
+    };
+
+    setup();
   }, []);
 
   if (!homeInfo) {
@@ -63,7 +122,6 @@ export default function Home() {
         <Header name={user.username} />
 
         <div className="pt-10">
-          <h2 className="text-xl font-bold">Sync</h2>
           <Stats
             stats={[
               {
@@ -83,6 +141,24 @@ export default function Home() {
               },
             ]}
           />
+        </div>
+
+        <div className="pt-10 flex justify-around">
+          <ActivityCalendar
+            theme={explicitTheme}
+            data={calendar}
+            weekStart={weekStart}
+            renderBlock={(block, activity) =>
+              React.cloneElement(block, {
+                "data-tooltip-id": "react-tooltip",
+                "data-tooltip-html": `${activity.count} commands on ${activity.date}`,
+              })
+            }
+            labels={{
+              totalCount: "{{count}} history records in the last year",
+            }}
+          />
+          <ReactTooltip id="react-tooltip" />
         </div>
       </div>
     </div>

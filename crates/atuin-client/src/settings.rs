@@ -330,6 +330,7 @@ pub struct Sync {
 #[derive(Clone, Debug, Deserialize, Default, Serialize)]
 pub struct Keys {
     pub scroll_exits: bool,
+    pub prefix: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -553,6 +554,10 @@ impl Settings {
             return Ok(false);
         }
 
+        if self.sync_frequency == "0" {
+            return Ok(true);
+        }
+
         match parse_duration(self.sync_frequency.as_str()) {
             Ok(d) => {
                 let d = time::Duration::try_from(d).unwrap();
@@ -662,7 +667,7 @@ impl Settings {
         let data_dir = atuin_common::utils::data_dir();
         let db_path = data_dir.join("history.db");
         let record_store_path = data_dir.join("records.db");
-        let socket_path = data_dir.join("atuin.sock");
+        let socket_path = atuin_common::utils::runtime_dir().join("atuin.sock");
 
         let key_path = data_dir.join("key");
         let session_path = data_dir.join("session");
@@ -711,6 +716,7 @@ impl Settings {
             .set_default("enter_accept", false)?
             .set_default("sync.records", false)?
             .set_default("keys.scroll_exits", true)?
+            .set_default("keys.prefix", "a")?
             .set_default("keymap_mode", "emacs")?
             .set_default("keymap_mode_shell", "auto")?
             .set_default("keymap_cursor", HashMap::<String, String>::new())?
